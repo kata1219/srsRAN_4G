@@ -1704,6 +1704,20 @@ public:
 
 }; // authentication_parameter_autn_t
 
+// IE: Fuzzing message parameter
+// Reference: Kata
+class fuzzing_message_t
+{
+public:
+  std::vector<uint8_t> res;
+  uint16_t len;
+
+  SRSASN_CODE pack(asn1::bit_ref& bref);
+  SRSASN_CODE unpack(asn1::cbit_ref& bref);
+
+}; // authentication_response_parameter_t
+
+
 // IE: Authentication response parameter
 // Reference: 9.11.3.17
 class authentication_response_parameter_t

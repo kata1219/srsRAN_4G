@@ -199,48 +199,75 @@ int nas_5g::write_pdu(srsran::unique_byte_buffer_t pdu)
   }
 
   switch (nas_msg.hdr.message_type) {
-    case msg_opts::options::registration_accept:
-      handle_registration_accept(nas_msg.registration_accept());
-      break;
-    case msg_opts::options::registration_reject:
-      handle_registration_reject(nas_msg.registration_reject());
-      break;
-    case msg_opts::options::authentication_reject:
-      handle_authentication_reject(nas_msg.authentication_reject());
-      break;
-    case msg_opts::options::authentication_request:
-      handle_authentication_request(nas_msg.authentication_request());
-      break;
-    case msg_opts::options::identity_request:
-      handle_identity_request(nas_msg.identity_request());
-      break;
-    case msg_opts::options::security_mode_command:
-      handle_security_mode_command(nas_msg.security_mode_command(), std::move(pdu));
-      break;
-    case msg_opts::options::service_accept:
-      handle_service_accept(nas_msg.service_accept());
-      break;
-    case msg_opts::options::service_reject:
-      handle_service_reject(nas_msg.service_reject());
-      break;
-    case msg_opts::options::deregistration_accept_ue_terminated:
-      handle_deregistration_accept_ue_terminated(nas_msg.deregistration_accept_ue_terminated());
-      break;
-    case msg_opts::options::deregistration_request_ue_terminated:
-      handle_deregistration_request_ue_terminated(nas_msg.deregistration_request_ue_terminated());
-      break;
-    case msg_opts::options::dl_nas_transport:
-      handle_dl_nas_transport(nas_msg.dl_nas_transport());
-      break;
-    case msg_opts::options::deregistration_accept_ue_originating:
-      handle_deregistration_accept_ue_originating(nas_msg.deregistration_accept_ue_originating());
-      break;
-    case msg_opts::options::configuration_update_command:
-      handle_configuration_update_command(nas_msg.configuration_update_command());
-      break;
+    // case msg_opts::options::registration_accept:
+    //   handle_registration_accept(nas_msg.registration_accept());
+    //   break;
+    // case msg_opts::options::registration_reject:
+    //   handle_registration_reject(nas_msg.registration_reject());
+    //   break;
+    // case msg_opts::options::authentication_reject:
+    //   handle_authentication_reject(nas_msg.authentication_reject());
+    //   break;
+    // case msg_opts::options::authentication_request:
+    //   handle_authentication_request(nas_msg.authentication_request());
+    //   break;
+    // case msg_opts::options::identity_request:
+    //   handle_identity_request(nas_msg.identity_request());
+    //   break;
+    // case msg_opts::options::security_mode_command:
+    //   handle_security_mode_command(nas_msg.security_mode_command(), std::move(pdu));
+    //   break;
+    // case msg_opts::options::service_accept:
+    //   handle_service_accept(nas_msg.service_accept());
+    //   break;
+    // case msg_opts::options::service_reject:
+    //   handle_service_reject(nas_msg.service_reject());
+    //   break;
+    // case msg_opts::options::deregistration_accept_ue_terminated:
+    //   handle_deregistration_accept_ue_terminated(nas_msg.deregistration_accept_ue_terminated());
+    //   break;
+    // case msg_opts::options::deregistration_request_ue_terminated:
+    //   handle_deregistration_request_ue_terminated(nas_msg.deregistration_request_ue_terminated());
+    //   break;
+    // case msg_opts::options::dl_nas_transport:
+    //   handle_dl_nas_transport(nas_msg.dl_nas_transport());
+    //   break;
+    // case msg_opts::options::deregistration_accept_ue_originating:
+    //   handle_deregistration_accept_ue_originating(nas_msg.deregistration_accept_ue_originating());
+    //   break;
+    // case msg_opts::options::configuration_update_command:
+    //   handle_configuration_update_command(nas_msg.configuration_update_command());
+    //   break;
     default:
-      logger.error(
-          "Not handling NAS message type: %s (0x%02x)", nas_msg.hdr.message_type.to_string(), nas_msg.hdr.message_type);
+      unique_byte_buffer_t pdu = srsran::make_byte_buffer();
+      if (!pdu) {
+        logger.error("Couldn't allocate PDU in %s().", __FUNCTION__);
+        return SRSRAN_ERROR;
+      }
+
+      const uint8_t res[16] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+
+      nas_5gs_msg    nas_msg;
+      int            fuzzing_msg_len = 16;
+      fuzzing_packet_t& fuzzing_pkt     = nas_msg.set_fuzzing_message();
+
+      fuzzing_pkt.fuzzing_message.len = fuzzing_msg_len;
+      fuzzing_pkt.fuzzing_message.res.resize(fuzzing_msg_len);
+      memcpy(fuzzing_pkt.fuzzing_message.res.data(), res, fuzzing_msg_len);
+
+      if (nas_msg.pack(pdu) != SRSASN_SUCCESS) {
+        logger.error("Failed to pack fuzzing message");
+        return SRSRAN_ERROR;
+      }
+
+      if (pcap != nullptr) {
+        pcap->write_nas(pdu.get()->msg, pdu.get()->N_bytes);
+      }
+
+      logger.info("Sending Fuzzing Message");
+      rrc_nr->write_sdu(std::move(pdu));
+      // logger.error(
+      //     "Not handling NAS message type: %s (0x%02x)", nas_msg.hdr.message_type.to_string(), nas_msg.hdr.message_type);
       break;
   }
   return SRSRAN_SUCCESS;
@@ -436,7 +463,7 @@ int nas_5g::send_security_mode_complete(const srsran::nas_5g::security_mode_comm
 
   if (cfg.enable_slicing) {
     s_nssai_t s_nssai{};
-    modified_registration_request.requested_nssai_present      = true;
+    modified_registration_request.requested_nssai_present = true;
     set_nssai(s_nssai);
     modified_registration_request.requested_nssai.s_nssai_list = {s_nssai};
   }

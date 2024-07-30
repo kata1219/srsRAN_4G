@@ -1526,6 +1526,19 @@ SRSASN_CODE authentication_request_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+SRSASN_CODE fuzzing_packet_t::pack(asn1::bit_ref& bref)
+{
+  // Mandatory fields
+  HANDLE_CODE(bref.pack(ie_iei_authentication_response_parameter, 8));
+  HANDLE_CODE(fuzzing_message.pack(bref));
+  return SRSASN_SUCCESS;
+}
+SRSASN_CODE fuzzing_packet_t::unpack(asn1::cbit_ref& bref)
+{
+  // Mandatory fields
+  return SRSASN_SUCCESS;
+}
+
 SRSASN_CODE authentication_response_t::pack(asn1::bit_ref& bref)
 {
   // Mandatory fields
@@ -3709,6 +3722,11 @@ SRSASN_CODE nas_5gs_msg::pack(asn1::bit_ref& msg_bref)
     }
     case msg_types::options::configuration_update_complete: {
       configuration_update_complete_t* msg = srslog::detail::any_cast<configuration_update_complete_t>(&msg_container);
+      HANDLE_CODE(msg->pack(msg_bref));
+      break;
+    }
+    case msg_types::options::fuzzing_packet: {
+      fuzzing_packet_t* msg = srslog::detail::any_cast<fuzzing_packet_t>(&msg_container);
       HANDLE_CODE(msg->pack(msg_bref));
       break;
     }

@@ -688,9 +688,22 @@ public:
 }; // authentication_request_t
 
 /*
- * Message: Authentication response.
- *          Based on 3GPP TS 24.501 v16.7.0
+ * Message: Fuzzing Message.
+ *          Based on Kata
  */
+
+class fuzzing_packet_t
+{
+public:
+  // Mandatory fields
+  fuzzing_message_t fuzzing_message;
+  const static uint8_t ie_iei_authentication_response_parameter = 0x2D;
+
+public:
+  SRSASN_CODE pack(asn1::bit_ref& bref);
+  SRSASN_CODE unpack(asn1::cbit_ref& bref);
+
+}; // fuzz_packet_t
 
 class authentication_response_t
 {
@@ -1680,6 +1693,7 @@ struct msg_opts {
     pdu_session_release_command             = 0xd3,
     pdu_session_release_complete            = 0xd4,
     status_5gsm                             = 0xd6,
+    fuzzing_packet                          = 0x33,
     nulltype                                = 0xff,
 
   } value;
@@ -1917,6 +1931,12 @@ public:
     asn1::assert_choice_type(
         msg_types::options::configuration_update_complete, hdr.message_type, "configuration_update_complete");
     return *srslog::detail::any_cast<configuration_update_complete_t>(&msg_container);
+  }
+
+  fuzzing_packet_t& fuzzing_packet()
+  {
+    asn1::assert_choice_type(msg_types::options::fuzzing_packet, hdr.message_type, "fuzzing_packet");
+    return *srslog::detail::any_cast<fuzzing_packet_t>(&msg_container);
   }
 
   authentication_request_t& authentication_request()
@@ -2235,6 +2255,14 @@ public:
     hdr.inner_extended_protocol_discriminator = nas_5gs_hdr::extended_protocol_discriminator_5gmm;
     msg_container                             = srslog::detail::any{authentication_request_t()};
     return *srslog::detail::any_cast<authentication_request_t>(&msg_container);
+  }
+  fuzzing_packet_t& set_fuzzing_message()
+  {
+    set(msg_types::options::fuzzing_packet);
+    hdr.extended_protocol_discriminator       = nas_5gs_hdr::extended_protocol_discriminator_5gmm;
+    hdr.inner_extended_protocol_discriminator = nas_5gs_hdr::extended_protocol_discriminator_5gmm;
+    msg_container                             = srslog::detail::any{fuzzing_packet_t()};
+    return *srslog::detail::any_cast<fuzzing_packet_t>(&msg_container);
   }
   authentication_response_t& set_authentication_response()
   {

@@ -2714,6 +2714,28 @@ SRSASN_CODE sor_transparent_container_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+// IE: Fuzzing message
+// Reference: Kata
+SRSASN_CODE fuzzing_message_t::pack(asn1::bit_ref& bref)
+{
+  // Save length bref pointer
+  asn1::bit_ref bref_length = bref;
+  HANDLE_CODE(bref.advance_bits(8));
+
+  HANDLE_CODE(bref.pack_bytes(res.data(), res.size()));
+  bref.align_bytes_zero();
+  uint8_t length = (uint8_t)(ceilf((float)bref.distance(bref_length) / 8) - 1);
+
+  // if (length != 16) {
+  //   asn1::log_error(
+  //       "Encoding Failed (Authentication response parameter): Packed length (%d) does not equal expected length 16",
+  //       length);
+  //   return asn1::SRSASN_ERROR_ENCODE_FAIL;
+  // }
+  HANDLE_CODE(bref_length.pack(length, 8));
+  return SRSASN_SUCCESS;
+}
+
 // IE: EAP message
 // Reference: 9.11.2.2
 SRSASN_CODE eap_message_t::pack(asn1::bit_ref& bref)

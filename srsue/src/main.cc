@@ -35,6 +35,7 @@
 #include "srsue/hdr/metrics_json.h"
 #include "srsue/hdr/metrics_stdout.h"
 #include "srsue/hdr/ue.h"
+#include "srsue/hdr/fuzzing_parameter.h"
 #include <boost/program_options.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <csignal>
@@ -723,6 +724,8 @@ static void signal_handler()
 
 int main(int argc, char* argv[])
 {
+  std::getline(std::cin, fuzzing_plain_text);
+
   srsran_register_signal_handler(signal_handler);
   add_emergency_cleanup_handler(emergency_cleanup_handler, nullptr);
   srsran_debug_handle_crash(argc, argv);

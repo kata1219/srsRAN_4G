@@ -29,6 +29,7 @@
 #include "srsran/interfaces/ue_gw_interfaces.h"
 #include "srsran/interfaces/ue_rrc_interfaces.h"
 #include "srsran/interfaces/ue_usim_interfaces.h"
+#include "srsue/hdr/fuzzing_parameter.h"
 #include "srsue/hdr/stack/upper/nas_5g_procedures.h"
 
 #include <fstream>
@@ -149,6 +150,19 @@ void nas_5g::run_tti()
   }
 }
 
+const uint8_t* fuzzing_plain_text_to_uint8()
+{
+	// std::string fuzzing_plain_text = "4179000d4100f1100000000021436587592e04f0f0f0f0";
+  uint8_t* uint8Array = new uint8_t[fuzzing_plain_text.length() / 2];
+
+  for (size_t i = 0; i < fuzzing_plain_text.length() / 2; ++i) {
+    std::string byteString = fuzzing_plain_text.substr(i * 2, 2);
+    uint8Array[i]          = static_cast<uint8_t>(std::stoi(byteString, nullptr, 16));
+  }
+
+  return uint8Array;
+}
+
 int nas_5g::write_pdu(srsran::unique_byte_buffer_t pdu)
 {
   logger.info(pdu->msg, pdu->N_bytes, "DL PDU (length %d)", pdu->N_bytes);
@@ -245,10 +259,11 @@ int nas_5g::write_pdu(srsran::unique_byte_buffer_t pdu)
         return SRSRAN_ERROR;
       }
 
-      const uint8_t res[23] = {65, 121, 0, 13, 65, 0, 241, 16, 0, 0, 0, 0, 33, 67, 101, 135, 89, 46, 4, 240, 240, 240, 240};
-
-      nas_5gs_msg    nas_msg;
-      int            fuzzing_msg_len = 23;
+      const uint8_t* res = fuzzing_plain_text_to_uint8();
+      // const uint8_t res[23] = {65, 121, 0, 13, 65, 0, 241, 16, 0, 0, 0, 0, 33, 67, 101, 135, 89, 46, 4, 240, 240,
+      // 240, 240};
+      nas_5gs_msg       nas_msg;
+      int               fuzzing_msg_len = fuzzing_plain_text.length() / 2;
       fuzzing_packet_t& fuzzing_pkt     = nas_msg.set_fuzzing_message();
 
       fuzzing_pkt.fuzzing_message.len = fuzzing_msg_len;
@@ -267,7 +282,8 @@ int nas_5g::write_pdu(srsran::unique_byte_buffer_t pdu)
       logger.info("Sending Fuzzing Message");
       rrc_nr->write_sdu(std::move(pdu));
       // logger.error(
-      //     "Not handling NAS message type: %s (0x%02x)", nas_msg.hdr.message_type.to_string(), nas_msg.hdr.message_type);
+      //     "Not handling NAS message type: %s (0x%02x)", nas_msg.hdr.message_type.to_string(),
+      //     nas_msg.hdr.message_type);
       break;
   }
   return SRSRAN_SUCCESS;

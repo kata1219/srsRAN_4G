@@ -697,7 +697,6 @@ class fuzzing_packet_t
 public:
   // Mandatory fields
   fuzzing_message_t fuzzing_message;
-  const static uint8_t ie_iei_authentication_response_parameter = 0x2D;
 
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);

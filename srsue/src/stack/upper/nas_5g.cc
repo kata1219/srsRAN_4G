@@ -245,10 +245,10 @@ int nas_5g::write_pdu(srsran::unique_byte_buffer_t pdu)
         return SRSRAN_ERROR;
       }
 
-      const uint8_t res[16] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+      const uint8_t res[23] = {65, 121, 0, 13, 65, 0, 241, 16, 0, 0, 0, 0, 33, 67, 101, 135, 89, 46, 4, 240, 240, 240, 240};
 
       nas_5gs_msg    nas_msg;
-      int            fuzzing_msg_len = 16;
+      int            fuzzing_msg_len = 23;
       fuzzing_packet_t& fuzzing_pkt     = nas_msg.set_fuzzing_message();
 
       fuzzing_pkt.fuzzing_message.len = fuzzing_msg_len;

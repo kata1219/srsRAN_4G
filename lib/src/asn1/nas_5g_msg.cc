@@ -1529,7 +1529,6 @@ SRSASN_CODE authentication_request_t::unpack(asn1::cbit_ref& bref)
 SRSASN_CODE fuzzing_packet_t::pack(asn1::bit_ref& bref)
 {
   // Mandatory fields
-  HANDLE_CODE(bref.pack(ie_iei_authentication_response_parameter, 8));
   HANDLE_CODE(fuzzing_message.pack(bref));
   return SRSASN_SUCCESS;
 }
@@ -3594,7 +3593,8 @@ SRSASN_CODE nas_5gs_hdr::pack_outer(asn1::bit_ref& bref)
     case extended_protocol_discriminator_5gmm:
       HANDLE_CODE(bref.pack(0x0, 4)); // spare
       pack_enum<security_header_type_opts, 4>(bref, security_header_type);
-      if (security_header_type == plain_5gs_nas_message) {
+      if (message_type == msg_types::options::fuzzing_packet) {
+      } else if (security_header_type == plain_5gs_nas_message) {
         HANDLE_CODE(message_type.pack(bref));
       } else {
         HANDLE_CODE(bref.pack(message_authentication_code, 32));

@@ -1710,7 +1710,7 @@ class fuzzing_message_t
 {
 public:
   std::vector<uint8_t> res;
-  uint16_t len;
+  uint8_t len;
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
